@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌟 Northstar
 
-## Getting Started
+**A daily AI companion that keeps founders moving toward their north star — and lets them seal a promise to their future self, on-chain.**
 
-First, run the development server:
+> Built at ETH Global New York 2025.
+
+---
+
+## The problem
+
+Founders and side-project builders carry a big dream — their *north star*. But daily noise buries it. There's no companion asking, every single day: *"Did you move toward it today?"*
+
+Goals don't fail from lack of ambition. They fail from lack of a daily, honest check-in.
+
+## What Northstar does
+
+1. **Set your north star** — your one big goal.
+2. **Answer one question a day** — the AI asks a short, pointed question that pulls you toward your north star. You answer briefly.
+3. **See your trajectory** — answers accumulate; the AI shows you where you are on the path.
+4. **Seal a promise to your future self — on-chain** — write a promise to who you want to be in 1 year. It's sealed as a tamper-proof, self-owned time capsule. Even if this app disappears, your promise and your journey live forever in your own wallet.
+
+## Why on-chain?
+
+The most personal data you own — your dreams, your honest daily reflections, your promise to your future self — shouldn't live on a platform that can vanish or change the terms. Northstar makes that promise **tamper-proof, timestamped, and owned by you**, not us.
+
+## Stack
+
+- **Frontend**: Next.js (App Router) + TypeScript + Tailwind
+- **Auth / Wallet**: Dynamic (email/social embedded wallet — frictionless daily login, no seed phrase)
+- **AI**: LLM-generated daily questions + trajectory analysis
+- **Contract**: `sealPromise(uri, unlockTime)` on **Base Sepolia**
+- **Storage**: IPFS (promise content) → URI sealed on-chain
+
+## Sponsor tracks
+
+- **Dynamic** — AI + Consumer (embedded wallet onboarding)
+- **ENS** — future-self identity *(stretch)*
+
+## Status
+
+🚧 Built in 1 day, solo. See commit history for the block-by-block build.
+
+## Run locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000).
