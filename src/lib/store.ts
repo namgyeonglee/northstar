@@ -13,6 +13,9 @@ export type Reflection = {
 export type UserData = {
   northStar: string;
   reflections: Reflection[];
+  productUrl?: string;
+  productBlurb?: string;
+  problem?: string;
   sealedPromise?: {
     text: string;
     unlockTime: number; // unix seconds
@@ -62,4 +65,27 @@ export function takePendingNorthStar(): string {
   const v = window.sessionStorage.getItem(PENDING_KEY) ?? "";
   window.sessionStorage.removeItem(PENDING_KEY);
   return v;
+}
+
+// Mirror the founder's public profile to the server (Upstash) so it appears
+// on the shared community feed. Fire-and-forget; localStorage stays the fast
+// local source of truth for the owner's own session.
+export function syncProfile(
+  address: string,
+  profile: {
+    northStar: string;
+    starCount: number;
+    productUrl?: string;
+    productBlurb?: string;
+    problem?: string;
+  },
+): void {
+  if (typeof window === "undefined" || !address) return;
+  fetch("/api/profile", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ address, ...profile }),
+  }).catch(() => {
+    /* non-fatal: feed sync is best-effort */
+  });
 }

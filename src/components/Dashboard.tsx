@@ -7,6 +7,7 @@ import {
   saveUser,
   emptyUser,
   takePendingNorthStar,
+  syncProfile,
   type UserData,
   type Reflection,
 } from "@/lib/store";
@@ -16,6 +17,7 @@ import Constellation, {
   STARS_PER_CONSTELLATION,
 } from "@/components/Constellation";
 import MyUniverse from "@/components/MyUniverse";
+import FounderFeed from "@/components/FounderFeed";
 import Footer from "@/components/Footer";
 
 function todayISO(): string {
@@ -40,6 +42,8 @@ export default function Dashboard() {
 
   // "My Universe" fullscreen view
   const [universeOpen, setUniverseOpen] = useState(false);
+  // Community feed fullscreen view
+  const [feedOpen, setFeedOpen] = useState(false);
   // Set to true when the latest answer just completed a constellation
   const [justCompleted, setJustCompleted] = useState(false);
 
@@ -60,6 +64,16 @@ export default function Dashboard() {
     }
     setData(u);
     setLoaded(true);
+    // Register/refresh this founder on the shared feed.
+    if (u.northStar) {
+      syncProfile(address, {
+        northStar: u.northStar,
+        starCount: u.reflections.length,
+        productUrl: u.productUrl,
+        productBlurb: u.productBlurb,
+        problem: u.problem,
+      });
+    }
   }, [address]);
 
   const fetchQuestion = useCallback(async (u: UserData) => {
@@ -126,6 +140,13 @@ export default function Dashboard() {
     };
     setData(next);
     saveUser(address, next);
+    syncProfile(address, {
+      northStar: next.northStar,
+      starCount: next.reflections.length,
+      productUrl: next.productUrl,
+      productBlurb: next.productBlurb,
+      problem: next.problem,
+    });
     setAnswer("");
 
     // Did this answer just complete a constellation? (7 stars each)
@@ -195,7 +216,80 @@ export default function Dashboard() {
         <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug max-w-2xl">
           {data.northStar}
         </h1>
+        <button
+          onClick={() => setFeedOpen(true)}
+          className="mt-1 rounded-full border border-black/15 dark:border-white/20 px-4 py-1.5 text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5"
+        >
+          See the community →
+        </button>
       </header>
+
+      {/* Your founder profile (shown on the public feed) */}
+      <details className="rounded-xl border border-black/10 dark:border-white/15 p-4">
+        <summary className="text-sm font-medium cursor-pointer select-none">
+          Your founder profile
+        </summary>
+        <div className="flex flex-col gap-3 pt-3">
+          <input
+            type="text"
+            defaultValue={data.productUrl ?? ""}
+            placeholder="Product URL (https://…)"
+            onBlur={(e) => {
+              const next = { ...data, productUrl: e.target.value.trim() };
+              setData(next);
+              saveUser(address, next);
+              syncProfile(address, {
+                northStar: next.northStar,
+                starCount: next.reflections.length,
+                productUrl: next.productUrl,
+                productBlurb: next.productBlurb,
+                problem: next.problem,
+              });
+            }}
+            className="w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent p-2.5 text-sm outline-none focus:border-black/30 dark:focus:border-white/30"
+          />
+          <textarea
+            defaultValue={data.productBlurb ?? ""}
+            rows={2}
+            placeholder="What are you building?"
+            onBlur={(e) => {
+              const next = { ...data, productBlurb: e.target.value.trim() };
+              setData(next);
+              saveUser(address, next);
+              syncProfile(address, {
+                northStar: next.northStar,
+                starCount: next.reflections.length,
+                productUrl: next.productUrl,
+                productBlurb: next.productBlurb,
+                problem: next.problem,
+              });
+            }}
+            className="w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent p-2.5 text-sm outline-none focus:border-black/30 dark:focus:border-white/30"
+          />
+          <textarea
+            defaultValue={data.problem ?? ""}
+            rows={2}
+            placeholder="What problem are you facing right now?"
+            onBlur={(e) => {
+              const next = { ...data, problem: e.target.value.trim() };
+              setData(next);
+              saveUser(address, next);
+              syncProfile(address, {
+                northStar: next.northStar,
+                starCount: next.reflections.length,
+                productUrl: next.productUrl,
+                productBlurb: next.productBlurb,
+                problem: next.problem,
+              });
+            }}
+            className="w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent p-2.5 text-sm outline-none focus:border-black/30 dark:focus:border-white/30"
+          />
+          <p className="text-[11px] text-neutral-400">
+            Saved automatically. Shown on the community feed so others can back
+            you.
+          </p>
+        </div>
+      </details>
 
       {/* Today's question — or the encouragement moment after answering */}
       {cheer ? (
@@ -364,6 +458,10 @@ export default function Dashboard() {
           northStar={data.northStar}
           onClose={() => setUniverseOpen(false)}
         />
+      )}
+
+      {feedOpen && (
+        <FounderFeed myAddress={address} onClose={() => setFeedOpen(false)} />
       )}
     </div>
   );
