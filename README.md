@@ -2,7 +2,7 @@
 
 **A daily AI companion that keeps founders moving toward their north star — and lets them seal a promise to their future self, on-chain.**
 
-> Built at ETH Global New York 2025.
+> Built at ETH Global New York 2026.
 
 ---
 
