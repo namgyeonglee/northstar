@@ -9,6 +9,7 @@ import {
   type UserData,
   type Reflection,
 } from "@/lib/store";
+import SealPromise from "@/components/SealPromise";
 
 function todayISO(): string {
   // YYYY-MM-DD in local time, no Date.now() needed for display.
@@ -223,6 +224,12 @@ export default function Dashboard() {
           </button>
         </div>
       )}
+
+      {/* Seal a promise to your future self — on-chain */}
+      <SealPromise
+        northStar={data.northStar}
+        reflectionCount={data.reflections.length}
+      />
 
       <div className="flex items-center justify-center gap-4 text-xs text-neutral-400">
         <span className="font-mono">
