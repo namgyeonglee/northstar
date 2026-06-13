@@ -95,14 +95,14 @@ export async function POST(request: Request) {
       .trim();
 
     return Response.json({
-      question: text || dummyQuestion(recentAnswers),
+      question: text || dummyQuestion(reflections.map((r) => r.answer)),
       source: text ? "ai" : "dummy",
     });
   } catch (err) {
     // Never break the daily loop on an API hiccup — fall back gracefully.
     console.error("question generation failed:", err);
     return Response.json({
-      question: dummyQuestion(recentAnswers),
+      question: dummyQuestion(reflections.map((r) => r.answer)),
       source: "dummy",
     });
   }
