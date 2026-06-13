@@ -74,6 +74,16 @@ export default function Dashboard() {
         problem: u.problem,
       });
     }
+    // Welcome gift: auto-fund the new wallet with Arc USDC so they can back
+    // a founder right away. The drip route skips wallets that already have
+    // USDC, so this is safe to call on every load.
+    fetch("/api/drip", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ address, chain: "arc" }),
+    }).catch(() => {
+      /* best-effort onboarding gift */
+    });
   }, [address]);
 
   const fetchQuestion = useCallback(async (u: UserData) => {
