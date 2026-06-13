@@ -12,6 +12,7 @@ import {
 } from "@/lib/store";
 import SealPromise from "@/components/SealPromise";
 import NorthStarInput from "@/components/NorthStarInput";
+import Constellation from "@/components/Constellation";
 
 function todayISO(): string {
   // YYYY-MM-DD in local time, no Date.now() needed for display.
@@ -29,6 +30,9 @@ export default function Dashboard() {
   const [question, setQuestion] = useState("");
   const [questionLoading, setQuestionLoading] = useState(false);
   const [answer, setAnswer] = useState("");
+
+  // Encouragement shown right after answering (the "well done" moment)
+  const [cheer, setCheer] = useState("");
 
   // Trajectory state
   const [trajectory, setTrajectory] = useState("");
@@ -70,8 +74,9 @@ export default function Dashboard() {
   }, []);
 
   // Once we have a north star and no pending question, fetch today's question.
+  // (Skip while a cheer is showing, so we don't pre-load behind it.)
   useEffect(() => {
-    if (loaded && data.northStar && !question && !questionLoading) {
+    if (loaded && data.northStar && !question && !questionLoading && !cheer) {
       fetchQuestion(data);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -98,7 +103,7 @@ export default function Dashboard() {
     }
   }, []);
 
-  function submitAnswer() {
+  async function submitAnswer() {
     const trimmed = answer.trim();
     if (!trimmed) return;
     const reflection: Reflection = {
@@ -113,9 +118,31 @@ export default function Dashboard() {
     setData(next);
     saveUser(address, next);
     setAnswer("");
+
+    // Reward the moment: fetch a short cheer and show it before the next Q.
+    setCheer("…");
+    try {
+      const res = await fetch("/api/encourage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          northStar: next.northStar,
+          question: reflection.question,
+          answer: reflection.answer,
+        }),
+      });
+      const json = await res.json();
+      setCheer(json.message ?? "One more star on the path. Keep going. ⭐");
+    } catch {
+      setCheer("One more star on the path. Keep going. ⭐");
+    }
+  }
+
+  function nextQuestion() {
+    setCheer("");
     setQuestion("");
-    // Next question will be fetched by the effect (question is now empty).
-    fetchQuestion(next);
+    // Empty question triggers the fetch effect.
+    fetchQuestion(data);
   }
 
   if (!loaded) {
@@ -148,34 +175,54 @@ export default function Dashboard() {
         <p className="text-lg font-medium">{data.northStar}</p>
       </div>
 
-      {/* Today's question */}
-      <div className="rounded-xl border border-black/10 dark:border-white/15 p-5 flex flex-col gap-3">
-        <p className="text-xs uppercase tracking-wide text-neutral-500">
-          Today&apos;s question
-        </p>
-        {questionLoading ? (
-          <p className="text-base text-neutral-400 animate-pulse">
-            Thinking of the right question…
+      {/* Today's question — or the encouragement moment after answering */}
+      {cheer ? (
+        <div className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-5 flex flex-col gap-4 items-center text-center">
+          {cheer === "…" ? (
+            <p className="text-base text-neutral-400 animate-pulse">
+              Reflecting on your answer…
+            </p>
+          ) : (
+            <p className="text-lg font-medium leading-relaxed">{cheer}</p>
+          )}
+          {cheer !== "…" && (
+            <button
+              onClick={nextQuestion}
+              className="rounded-full bg-foreground text-background px-5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+            >
+              Next question →
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-xl border border-black/10 dark:border-white/15 p-5 flex flex-col gap-3">
+          <p className="text-xs uppercase tracking-wide text-neutral-500">
+            Today&apos;s question
           </p>
-        ) : (
-          <p className="text-lg font-medium">{question}</p>
-        )}
-        <textarea
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          rows={2}
-          placeholder="Answer in a sentence or two…"
-          disabled={questionLoading}
-          className="w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent p-3 text-base outline-none focus:border-black/30 dark:focus:border-white/30 disabled:opacity-50"
-        />
-        <button
-          onClick={submitAnswer}
-          disabled={!answer.trim() || questionLoading}
-          className="self-end rounded-full bg-foreground text-background px-5 py-2 text-sm font-medium disabled:opacity-40 transition-opacity"
-        >
-          Save reflection
-        </button>
-      </div>
+          {questionLoading ? (
+            <p className="text-base text-neutral-400 animate-pulse">
+              Thinking of the right question…
+            </p>
+          ) : (
+            <p className="text-lg font-medium">{question}</p>
+          )}
+          <textarea
+            value={answer}
+            onChange={(e) => setAnswer(e.target.value)}
+            rows={2}
+            placeholder="Answer in a sentence or two…"
+            disabled={questionLoading}
+            className="w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent p-3 text-base outline-none focus:border-black/30 dark:focus:border-white/30 disabled:opacity-50"
+          />
+          <button
+            onClick={submitAnswer}
+            disabled={!answer.trim() || questionLoading}
+            className="self-end rounded-full bg-foreground text-background px-5 py-2 text-sm font-medium disabled:opacity-40 transition-opacity"
+          >
+            Save reflection
+          </button>
+        </div>
+      )}
 
       {/* Trajectory: where am I on the path? */}
       {data.reflections.length > 0 && (
@@ -185,10 +232,13 @@ export default function Dashboard() {
               Your trajectory
             </p>
             <span className="text-xs text-neutral-400">
-              🌱 {data.reflections.length} reflection
-              {data.reflections.length === 1 ? "" : "s"}
+              ⭐ {data.reflections.length} star
+              {data.reflections.length === 1 ? "" : "s"} lit
             </span>
           </div>
+
+          {/* The constellation grows with every reflection */}
+          <Constellation count={data.reflections.length} />
 
           {trajectoryLoading ? (
             <p className="text-base text-neutral-400 animate-pulse">
