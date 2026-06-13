@@ -229,6 +229,12 @@ export default function Dashboard() {
       <SealPromise
         northStar={data.northStar}
         reflectionCount={data.reflections.length}
+        sealed={data.sealedPromise}
+        onSealed={(sealed) => {
+          const next = { ...data, sealedPromise: sealed };
+          setData(next);
+          saveUser(address, next);
+        }}
       />
 
       <div className="flex items-center justify-center gap-4 text-xs text-neutral-400">

@@ -13,9 +13,20 @@ import {
   type PromiseContent,
 } from "@/lib/promises";
 
+export type SealedPromise = {
+  text: string;
+  unlockTime: number;
+  txHash?: string;
+  ipfsUri?: string;
+};
+
 type Props = {
   northStar: string;
   reflectionCount: number;
+  // Existing seal (from store) — if present, we show the sealed state.
+  sealed?: SealedPromise;
+  // Called when a new promise is sealed, so the parent can persist it.
+  onSealed: (sealed: SealedPromise) => void;
 };
 
 type Status =
@@ -32,7 +43,12 @@ function oneYearFromNowUnix(): bigint {
   return BigInt(Math.floor(next.getTime() / 1000));
 }
 
-export default function SealPromise({ northStar, reflectionCount }: Props) {
+export default function SealPromise({
+  northStar,
+  reflectionCount,
+  sealed,
+  onSealed,
+}: Props) {
   const { primaryWallet } = useDynamicContext();
   const [text, setText] = useState("");
   const [status, setStatus] = useState<Status>({ phase: "idle" });
@@ -61,21 +77,69 @@ export default function SealPromise({ northStar, reflectionCount }: Props) {
         BASE_SEPOLIA.id.toString(),
       );
 
+      const unlockTime = oneYearFromNowUnix();
       const txHash = await walletClient.writeContract({
         address: CONTRACT_ADDRESS,
         abi: PROMISES_ABI,
         functionName: "sealPromise",
-        args: [uri, oneYearFromNowUnix()],
+        args: [uri, unlockTime],
         chain: BASE_SEPOLIA,
         account: walletClient.account,
       });
 
       setStatus({ phase: "done", txHash, ipfsUri: uri });
+      // Persist so it survives refresh — a sealed promise is permanent.
+      onSealed({
+        text: promise,
+        unlockTime: Number(unlockTime),
+        txHash,
+        ipfsUri: uri,
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong sealing your promise.";
       setStatus({ phase: "error", message });
     }
+  }
+
+  // Already sealed (loaded from store) → show the permanent sealed state.
+  if (sealed) {
+    return (
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 flex flex-col gap-3 text-left">
+        <p className="text-xs uppercase tracking-wide text-emerald-600">
+          Promise sealed — forever yours
+        </p>
+        <p className="text-base leading-relaxed italic">
+          &ldquo;{sealed.text}&rdquo;
+        </p>
+        <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          Sealed on Base, tamper-proof and owned by you. Even if Northstar
+          disappears, it lives in your wallet.
+        </p>
+        <div className="flex flex-col gap-1">
+          {sealed.txHash && (
+            <a
+              href={explorerTxUrl(sealed.txHash)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="self-start text-sm underline text-emerald-700 dark:text-emerald-400"
+            >
+              View the on-chain transaction (BaseScan) ↗
+            </a>
+          )}
+          {sealed.ipfsUri && (
+            <a
+              href={ipfsToHttp(sealed.ipfsUri)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="self-start text-sm underline text-emerald-700 dark:text-emerald-400"
+            >
+              Read your promise on IPFS ↗
+            </a>
+          )}
+        </div>
+      </div>
+    );
   }
 
   if (status.phase === "done") {
