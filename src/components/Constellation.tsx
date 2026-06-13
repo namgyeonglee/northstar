@@ -1,16 +1,16 @@
 "use client";
 
-// A constellation that grows as the user reflects. Each reflection lights up
-// one star; the path climbs toward the North Star at the top. Ties the
-// progress visualization directly to the product's name and concept.
+// A constellation that grows as the user reflects. Each reflection lights one
+// sparkle star; the path climbs toward the North Star at the top. Styled after
+// classic zodiac-poster constellations: white/silver sparkles on a dark sky,
+// thin connecting lines.
 
 type Props = {
   count: number; // number of reflections (lit stars below the North Star)
 };
 
 // Pre-placed star positions (percent of the viewBox), winding upward toward
-// the North Star. No coordinate math — just fill in order as reflections grow.
-// viewBox is 100 (w) x 140 (h); higher index = higher on the path.
+// the North Star. viewBox 100 x 140; higher index = higher on the path.
 const PATH: { x: number; y: number }[] = [
   { x: 50, y: 128 },
   { x: 34, y: 116 },
@@ -26,14 +26,25 @@ const PATH: { x: number; y: number }[] = [
 const NORTH_STAR = { x: 50, y: 16 };
 const MAX = PATH.length;
 
+// A four-point sparkle star centered at (cx, cy) with the given radius.
+function sparklePath(cx: number, cy: number, r: number): string {
+  const w = r * 0.28; // waist of the sparkle
+  return [
+    `M${cx} ${cy - r}`,
+    `Q${cx + w} ${cy - w} ${cx + r} ${cy}`,
+    `Q${cx + w} ${cy + w} ${cx} ${cy + r}`,
+    `Q${cx - w} ${cy + w} ${cx - r} ${cy}`,
+    `Q${cx - w} ${cy - w} ${cx} ${cy - r}`,
+    "Z",
+  ].join(" ");
+}
+
 export default function Constellation({ count }: Props) {
   const lit = Math.min(count, MAX);
 
-  // Build the connecting line through the North Star and every lit star,
-  // from the bottom upward.
   const litPoints = PATH.slice(0, lit);
   const linePoints = [...litPoints]
-    .reverse() // bottom-first for a natural climbing line
+    .reverse()
     .concat([NORTH_STAR])
     .map((p) => `${p.x},${p.y}`)
     .join(" ");
@@ -41,18 +52,18 @@ export default function Constellation({ count }: Props) {
   return (
     <svg
       viewBox="0 0 100 140"
-      className="w-full max-w-[220px] mx-auto"
+      className="w-full max-w-[240px] mx-auto text-white"
       role="img"
       aria-label={`Your constellation: ${lit} of ${MAX} stars lit on the path to your North Star`}
     >
-      {/* faint connecting path among lit stars + the North Star */}
+      {/* connecting path among lit stars + the North Star */}
       {lit > 0 && (
         <polyline
           points={linePoints}
           fill="none"
           stroke="currentColor"
-          strokeOpacity="0.25"
-          strokeWidth="0.6"
+          strokeOpacity="0.35"
+          strokeWidth="0.5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -61,51 +72,45 @@ export default function Constellation({ count }: Props) {
       {/* path stars */}
       {PATH.map((p, i) => {
         const isLit = i < lit;
+        if (isLit) {
+          return (
+            <path
+              key={i}
+              d={sparklePath(p.x, p.y, 4)}
+              fill="currentColor"
+            >
+              <animate
+                attributeName="fill-opacity"
+                values="1;0.6;1"
+                dur="3s"
+                repeatCount="indefinite"
+                begin={`${i * 0.3}s`}
+              />
+            </path>
+          );
+        }
+        // unlit: faint small dot, a star waiting to be earned
         return (
           <circle
             key={i}
             cx={p.x}
             cy={p.y}
-            r={isLit ? 2.6 : 1.4}
-            className={isLit ? "fill-amber-400" : "fill-current"}
-            fillOpacity={isLit ? 1 : 0.18}
-          >
-            {isLit && (
-              <animate
-                attributeName="fill-opacity"
-                values="1;0.55;1"
-                dur="3s"
-                repeatCount="indefinite"
-                begin={`${i * 0.3}s`}
-              />
-            )}
-          </circle>
+            r={1}
+            fill="currentColor"
+            fillOpacity={0.2}
+          />
         );
       })}
 
       {/* the North Star — always the brightest, your destination */}
-      <g>
-        <circle
-          cx={NORTH_STAR.x}
-          cy={NORTH_STAR.y}
-          r="4.5"
-          className="fill-amber-300"
-        >
-          <animate
-            attributeName="r"
-            values="4.5;5.2;4.5"
-            dur="2.5s"
-            repeatCount="indefinite"
-          />
-        </circle>
-        {/* little sparkle cross */}
-        <path
-          d={`M${NORTH_STAR.x} ${NORTH_STAR.y - 9} L${NORTH_STAR.x} ${NORTH_STAR.y + 9} M${NORTH_STAR.x - 9} ${NORTH_STAR.y} L${NORTH_STAR.x + 9} ${NORTH_STAR.y}`}
-          stroke="currentColor"
-          strokeOpacity="0.3"
-          strokeWidth="0.5"
+      <path d={sparklePath(NORTH_STAR.x, NORTH_STAR.y, 7)} fill="currentColor">
+        <animate
+          attributeName="fill-opacity"
+          values="0.85;1;0.85"
+          dur="2.5s"
+          repeatCount="indefinite"
         />
-      </g>
+      </path>
     </svg>
   );
 }

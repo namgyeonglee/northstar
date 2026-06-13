@@ -224,15 +224,15 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Trajectory: where am I on the path? */}
+      {/* Trajectory: a night sky that grows with every reflection */}
       {data.reflections.length > 0 && (
-        <div className="rounded-xl border border-black/10 dark:border-white/15 p-5 flex flex-col gap-3">
+        <div className="rounded-xl bg-neutral-950 text-neutral-100 p-6 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-wide text-neutral-500">
-              Your trajectory
+            <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
+              Your constellation
             </p>
             <span className="text-xs text-neutral-400">
-              ⭐ {data.reflections.length} star
+              {data.reflections.length} star
               {data.reflections.length === 1 ? "" : "s"} lit
             </span>
           </div>
@@ -241,13 +241,15 @@ export default function Dashboard() {
           <Constellation count={data.reflections.length} />
 
           {trajectoryLoading ? (
-            <p className="text-base text-neutral-400 animate-pulse">
+            <p className="text-base text-neutral-400 animate-pulse text-center">
               Reading where you are on the path…
             </p>
           ) : trajectory ? (
-            <p className="text-base leading-relaxed">{trajectory}</p>
+            <p className="text-base leading-relaxed text-center text-neutral-200">
+              {trajectory}
+            </p>
           ) : (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-sm text-neutral-400 text-center">
               See how far you&apos;ve come and where to focus next.
             </p>
           )}
@@ -255,7 +257,7 @@ export default function Dashboard() {
           <button
             onClick={() => fetchTrajectory(data)}
             disabled={trajectoryLoading}
-            className="self-start rounded-full border border-black/15 dark:border-white/20 px-4 py-1.5 text-sm font-medium disabled:opacity-40 transition-opacity"
+            className="self-center rounded-full border border-white/25 text-neutral-100 px-5 py-1.5 text-sm font-medium disabled:opacity-40 transition-opacity hover:bg-white/5"
           >
             {trajectory ? "Refresh trajectory" : "Where am I?"}
           </button>
