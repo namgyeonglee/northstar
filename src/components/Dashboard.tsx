@@ -11,6 +11,7 @@ import {
   type Reflection,
 } from "@/lib/store";
 import SealPromise from "@/components/SealPromise";
+import NorthStarInput from "@/components/NorthStarInput";
 
 function todayISO(): string {
   // YYYY-MM-DD in local time, no Date.now() needed for display.
@@ -23,7 +24,6 @@ export default function Dashboard() {
 
   const [data, setData] = useState<UserData>(emptyUser());
   const [loaded, setLoaded] = useState(false);
-  const [draft, setDraft] = useState("");
 
   // Daily question state
   const [question, setQuestion] = useState("");
@@ -46,7 +46,6 @@ export default function Dashboard() {
       }
     }
     setData(u);
-    setDraft(u.northStar);
     setLoaded(true);
   }, [address]);
 
@@ -99,14 +98,6 @@ export default function Dashboard() {
     }
   }, []);
 
-  function saveNorthStar() {
-    const trimmed = draft.trim();
-    if (!trimmed) return;
-    const next = { ...data, northStar: trimmed };
-    setData(next);
-    saveUser(address, next);
-  }
-
   function submitAnswer() {
     const trimmed = answer.trim();
     if (!trimmed) return;
@@ -131,32 +122,19 @@ export default function Dashboard() {
     return <p className="text-sm text-neutral-500">Loading your journey…</p>;
   }
 
-  // --- No north star yet → ask for it. ---
+  // --- Logged in but no North Star yet (e.g. returning on a fresh device) ---
+  // Same landing UI as logged-out, but saves directly since we already have
+  // a wallet. In the normal flow this rarely shows — login implies a pending
+  // North Star that's claimed above.
   if (!data.northStar) {
     return (
-      <div className="w-full flex flex-col gap-4 text-left">
-        <h2 className="text-xl font-medium text-center">
-          What&apos;s your North Star?
-        </h2>
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
-          The one big goal you&apos;re moving toward. Be specific. This is what
-          every daily question will pull you back to.
-        </p>
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          rows={3}
-          placeholder="e.g. Launch my SaaS and reach $10k MRR within a year"
-          className="w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent p-3 text-base outline-none focus:border-black/30 dark:focus:border-white/30"
-        />
-        <button
-          onClick={saveNorthStar}
-          disabled={!draft.trim()}
-          className="self-center rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-medium disabled:opacity-40 transition-opacity"
-        >
-          Set my North Star →
-        </button>
-      </div>
+      <NorthStarInput
+        onCommit={(northStar) => {
+          const next = { ...data, northStar };
+          setData(next);
+          saveUser(address, next);
+        }}
+      />
     );
   }
 
