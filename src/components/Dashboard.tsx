@@ -12,7 +12,10 @@ import {
 } from "@/lib/store";
 import SealPromise from "@/components/SealPromise";
 import NorthStarInput from "@/components/NorthStarInput";
-import Constellation from "@/components/Constellation";
+import Constellation, {
+  STARS_PER_CONSTELLATION,
+} from "@/components/Constellation";
+import MyUniverse from "@/components/MyUniverse";
 import Footer from "@/components/Footer";
 
 function todayISO(): string {
@@ -34,6 +37,11 @@ export default function Dashboard() {
 
   // Encouragement shown right after answering (the "well done" moment)
   const [cheer, setCheer] = useState("");
+
+  // "My Universe" fullscreen view
+  const [universeOpen, setUniverseOpen] = useState(false);
+  // Set to true when the latest answer just completed a constellation
+  const [justCompleted, setJustCompleted] = useState(false);
 
   // Trajectory state
   const [trajectory, setTrajectory] = useState("");
@@ -120,6 +128,12 @@ export default function Dashboard() {
     saveUser(address, next);
     setAnswer("");
 
+    // Did this answer just complete a constellation? (7 stars each)
+    setJustCompleted(
+      next.reflections.length > 0 &&
+        next.reflections.length % STARS_PER_CONSTELLATION === 0,
+    );
+
     // Reward the moment: fetch a short cheer and show it before the next Q.
     setCheer("…");
     try {
@@ -141,6 +155,7 @@ export default function Dashboard() {
 
   function nextQuestion() {
     setCheer("");
+    setJustCompleted(false);
     setQuestion("");
     // Empty question triggers the fetch effect.
     fetchQuestion(data);
@@ -185,6 +200,16 @@ export default function Dashboard() {
       {/* Today's question — or the encouragement moment after answering */}
       {cheer ? (
         <div className="rounded-xl border border-amber-400/30 bg-amber-400/5 p-5 flex flex-col gap-4 items-center text-center">
+          {justCompleted && cheer !== "…" && (
+            <div className="flex flex-col items-center gap-1">
+              <span className="text-3xl" aria-hidden>
+                ✨
+              </span>
+              <p className="text-sm font-semibold tracking-wide text-amber-600">
+                Constellation complete! A new one begins.
+              </p>
+            </div>
+          )}
           {cheer === "…" ? (
             <p className="text-base text-neutral-400 animate-pulse">
               Reflecting on your answer…
@@ -193,12 +218,22 @@ export default function Dashboard() {
             <p className="text-lg font-medium leading-relaxed">{cheer}</p>
           )}
           {cheer !== "…" && (
-            <button
-              onClick={nextQuestion}
-              className="rounded-full bg-foreground text-background px-5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
-            >
-              Next question →
-            </button>
+            <div className="flex items-center gap-3">
+              {justCompleted && (
+                <button
+                  onClick={() => setUniverseOpen(true)}
+                  className="rounded-full border border-amber-400/50 text-amber-700 dark:text-amber-400 px-5 py-2 text-sm font-medium transition-colors hover:bg-amber-400/10"
+                >
+                  See my universe ✦
+                </button>
+              )}
+              <button
+                onClick={nextQuestion}
+                className="rounded-full bg-foreground text-background px-5 py-2 text-sm font-medium transition-opacity hover:opacity-90"
+              >
+                Next question →
+              </button>
+            </div>
           )}
         </div>
       ) : (
@@ -238,14 +273,32 @@ export default function Dashboard() {
             <p className="text-xs uppercase tracking-[0.2em] text-neutral-400">
               Your constellation
             </p>
-            <span className="text-xs text-neutral-400">
-              {data.reflections.length} star
-              {data.reflections.length === 1 ? "" : "s"} lit
+            <span className="text-xs text-amber-400/90 font-medium">
+              {data.reflections.length % STARS_PER_CONSTELLATION}/
+              {STARS_PER_CONSTELLATION} stars
             </span>
           </div>
 
-          {/* The constellation grows with every reflection */}
-          <Constellation count={data.reflections.length} />
+          {/* The current constellation grows with every reflection (7 each) */}
+          <Constellation
+            lit={data.reflections.length % STARS_PER_CONSTELLATION}
+          />
+
+          {/* progress summary so effort always shows, even at 0 completed */}
+          <p className="text-center text-xs text-neutral-400">
+            {data.reflections.length} star
+            {data.reflections.length === 1 ? "" : "s"} lit total
+            {Math.floor(data.reflections.length / STARS_PER_CONSTELLATION) > 0 &&
+              ` · ${Math.floor(
+                data.reflections.length / STARS_PER_CONSTELLATION,
+              )} constellation${
+                Math.floor(
+                  data.reflections.length / STARS_PER_CONSTELLATION,
+                ) === 1
+                  ? ""
+                  : "s"
+              } complete`}
+          </p>
 
           {trajectoryLoading ? (
             <p className="text-base text-neutral-400 animate-pulse text-center">
@@ -261,13 +314,21 @@ export default function Dashboard() {
             </p>
           )}
 
-          <button
-            onClick={() => fetchTrajectory(data)}
-            disabled={trajectoryLoading}
-            className="self-center rounded-full border border-white/25 text-neutral-100 px-5 py-1.5 text-sm font-medium disabled:opacity-40 transition-opacity hover:bg-white/5"
-          >
-            {trajectory ? "Refresh trajectory" : "Where am I?"}
-          </button>
+          <div className="flex items-center justify-center gap-3 flex-wrap">
+            <button
+              onClick={() => fetchTrajectory(data)}
+              disabled={trajectoryLoading}
+              className="rounded-full border border-white/25 text-neutral-100 px-5 py-1.5 text-sm font-medium disabled:opacity-40 transition-opacity hover:bg-white/5"
+            >
+              {trajectory ? "Refresh trajectory" : "Where am I?"}
+            </button>
+            <button
+              onClick={() => setUniverseOpen(true)}
+              className="rounded-full border border-white/25 text-neutral-100 px-5 py-1.5 text-sm font-medium transition-colors hover:bg-white/5"
+            >
+              See my universe ✦
+            </button>
+          </div>
         </div>
       )}
 
@@ -296,6 +357,14 @@ export default function Dashboard() {
       </div>
 
       <Footer />
+
+      {universeOpen && (
+        <MyUniverse
+          totalReflections={data.reflections.length}
+          northStar={data.northStar}
+          onClose={() => setUniverseOpen(false)}
+        />
+      )}
     </div>
   );
 }

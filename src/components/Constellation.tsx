@@ -1,34 +1,35 @@
 "use client";
 
 // A constellation that grows as the user reflects. Each reflection lights one
-// sparkle star; the path climbs toward the North Star at the top. Styled after
-// classic zodiac-poster constellations: white/silver sparkles on a dark sky,
-// thin connecting lines.
+// sparkle star; the path climbs toward the North Star at the top. Seven stars
+// complete a constellation, then a new one begins. Styled after zodiac-poster
+// constellations: white/silver sparkles on a dark sky, thin connecting lines.
+
+export const STARS_PER_CONSTELLATION = 7;
 
 type Props = {
-  count: number; // number of reflections (lit stars below the North Star)
+  lit: number; // how many stars are lit in THIS constellation (0..7)
+  showNorthStar?: boolean; // draw the bright North Star at the top (default true)
+  className?: string;
 };
 
-// Pre-placed star positions (percent of the viewBox), winding upward toward
-// the North Star. viewBox 100 x 140; higher index = higher on the path.
+// Pre-placed star positions (percent of the viewBox), winding upward.
+// viewBox 100 x 140; higher index = higher on the path.
 const PATH: { x: number; y: number }[] = [
-  { x: 50, y: 128 },
-  { x: 34, y: 116 },
-  { x: 60, y: 104 },
-  { x: 40, y: 92 },
-  { x: 62, y: 80 },
-  { x: 44, y: 68 },
-  { x: 58, y: 56 },
-  { x: 46, y: 44 },
-  { x: 54, y: 32 },
+  { x: 50, y: 126 },
+  { x: 36, y: 110 },
+  { x: 60, y: 96 },
+  { x: 40, y: 80 },
+  { x: 62, y: 64 },
+  { x: 44, y: 48 },
+  { x: 54, y: 34 },
 ];
 
 const NORTH_STAR = { x: 50, y: 16 };
-const MAX = PATH.length;
 
 // A four-point sparkle star centered at (cx, cy) with the given radius.
 function sparklePath(cx: number, cy: number, r: number): string {
-  const w = r * 0.28; // waist of the sparkle
+  const w = r * 0.28;
   return [
     `M${cx} ${cy - r}`,
     `Q${cx + w} ${cy - w} ${cx + r} ${cy}`,
@@ -39,25 +40,29 @@ function sparklePath(cx: number, cy: number, r: number): string {
   ].join(" ");
 }
 
-export default function Constellation({ count }: Props) {
-  const lit = Math.min(count, MAX);
+export default function Constellation({
+  lit,
+  showNorthStar = true,
+  className = "w-full max-w-[240px] mx-auto text-white",
+}: Props) {
+  const litCount = Math.min(lit, PATH.length);
 
-  const litPoints = PATH.slice(0, lit);
+  const litPoints = PATH.slice(0, litCount);
+  const tail = showNorthStar ? [NORTH_STAR] : [];
   const linePoints = [...litPoints]
     .reverse()
-    .concat([NORTH_STAR])
+    .concat(tail)
     .map((p) => `${p.x},${p.y}`)
     .join(" ");
 
   return (
     <svg
       viewBox="0 0 100 140"
-      className="w-full max-w-[240px] mx-auto text-white"
+      className={className}
       role="img"
-      aria-label={`Your constellation: ${lit} of ${MAX} stars lit on the path to your North Star`}
+      aria-label={`${litCount} of ${PATH.length} stars lit`}
     >
-      {/* connecting path among lit stars + the North Star */}
-      {lit > 0 && (
+      {litCount > 0 && (
         <polyline
           points={linePoints}
           fill="none"
@@ -69,16 +74,11 @@ export default function Constellation({ count }: Props) {
         />
       )}
 
-      {/* path stars */}
       {PATH.map((p, i) => {
-        const isLit = i < lit;
+        const isLit = i < litCount;
         if (isLit) {
           return (
-            <path
-              key={i}
-              d={sparklePath(p.x, p.y, 4)}
-              fill="currentColor"
-            >
+            <path key={i} d={sparklePath(p.x, p.y, 4)} fill="currentColor">
               <animate
                 attributeName="fill-opacity"
                 values="1;0.6;1"
@@ -89,7 +89,6 @@ export default function Constellation({ count }: Props) {
             </path>
           );
         }
-        // unlit: faint small dot, a star waiting to be earned
         return (
           <circle
             key={i}
@@ -102,15 +101,16 @@ export default function Constellation({ count }: Props) {
         );
       })}
 
-      {/* the North Star — always the brightest, your destination */}
-      <path d={sparklePath(NORTH_STAR.x, NORTH_STAR.y, 7)} fill="currentColor">
-        <animate
-          attributeName="fill-opacity"
-          values="0.85;1;0.85"
-          dur="2.5s"
-          repeatCount="indefinite"
-        />
-      </path>
+      {showNorthStar && (
+        <path d={sparklePath(NORTH_STAR.x, NORTH_STAR.y, 7)} fill="currentColor">
+          <animate
+            attributeName="fill-opacity"
+            values="0.85;1;0.85"
+            dur="2.5s"
+            repeatCount="indefinite"
+          />
+        </path>
+      )}
     </svg>
   );
 }
