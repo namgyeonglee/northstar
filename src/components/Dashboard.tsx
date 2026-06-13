@@ -28,6 +28,10 @@ export default function Dashboard() {
   const [questionLoading, setQuestionLoading] = useState(false);
   const [answer, setAnswer] = useState("");
 
+  // Trajectory state
+  const [trajectory, setTrajectory] = useState("");
+  const [trajectoryLoading, setTrajectoryLoading] = useState(false);
+
   useEffect(() => {
     if (!address) return;
     const u = loadUser(address);
@@ -63,6 +67,27 @@ export default function Dashboard() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loaded, data.northStar]);
+
+  const fetchTrajectory = useCallback(async (u: UserData) => {
+    setTrajectoryLoading(true);
+    setTrajectory("");
+    try {
+      const res = await fetch("/api/trajectory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          northStar: u.northStar,
+          reflections: u.reflections,
+        }),
+      });
+      const json = await res.json();
+      setTrajectory(json.summary ?? "");
+    } catch {
+      setTrajectory("Couldn't read your trajectory just now — try again.");
+    } finally {
+      setTrajectoryLoading(false);
+    }
+  }, []);
 
   function saveNorthStar() {
     const trimmed = draft.trim();
@@ -164,13 +189,39 @@ export default function Dashboard() {
         </button>
       </div>
 
-      {/* Reflection count (full trajectory view comes in block 3) */}
+      {/* Trajectory: where am I on the path? */}
       {data.reflections.length > 0 && (
-        <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
-          🌱 {data.reflections.length} reflection
-          {data.reflections.length === 1 ? "" : "s"} so far. Your trajectory is
-          taking shape.
-        </p>
+        <div className="rounded-xl border border-black/10 dark:border-white/15 p-5 flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs uppercase tracking-wide text-neutral-500">
+              Your trajectory
+            </p>
+            <span className="text-xs text-neutral-400">
+              🌱 {data.reflections.length} reflection
+              {data.reflections.length === 1 ? "" : "s"}
+            </span>
+          </div>
+
+          {trajectoryLoading ? (
+            <p className="text-base text-neutral-400 animate-pulse">
+              Reading where you are on the path…
+            </p>
+          ) : trajectory ? (
+            <p className="text-base leading-relaxed">{trajectory}</p>
+          ) : (
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              See how far you&apos;ve come and where to focus next.
+            </p>
+          )}
+
+          <button
+            onClick={() => fetchTrajectory(data)}
+            disabled={trajectoryLoading}
+            className="self-start rounded-full border border-black/15 dark:border-white/20 px-4 py-1.5 text-sm font-medium disabled:opacity-40 transition-opacity"
+          >
+            {trajectory ? "Refresh trajectory" : "Where am I?"}
+          </button>
+        </div>
       )}
 
       <div className="flex items-center justify-center gap-4 text-xs text-neutral-400">
