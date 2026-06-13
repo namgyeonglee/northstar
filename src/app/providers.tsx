@@ -25,6 +25,25 @@ const baseSepoliaNetwork = {
   vanityName: "Base Sepolia",
 };
 
+// Arc Testnet (Circle's L1). USDC is the NATIVE token — gas and value are both
+// USDC (6 decimals). Donations are plain native transfers here.
+const arcTestnetNetwork = {
+  blockExplorerUrls: ["https://testnet.arcscan.app/"],
+  chainId: 5042002,
+  chainName: "Arc Testnet",
+  iconUrls: ["https://app.dynamic.xyz/assets/networks/usdc.svg"],
+  name: "Arc Testnet",
+  nativeCurrency: {
+    decimals: 6,
+    name: "USD Coin",
+    symbol: "USDC",
+    iconUrl: "https://app.dynamic.xyz/assets/networks/usdc.svg",
+  },
+  networkId: 5042002,
+  rpcUrls: ["https://rpc.testnet.arc.network"],
+  vanityName: "Arc Testnet",
+};
+
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <DynamicContextProvider
@@ -32,7 +51,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         environmentId: ENV_ID,
         walletConnectors: [EthereumWalletConnectors],
         overrides: {
-          evmNetworks: [baseSepoliaNetwork],
+          evmNetworks: [baseSepoliaNetwork, arcTestnetNetwork],
         },
       }}
     >
