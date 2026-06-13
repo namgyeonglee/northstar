@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import {
-  loadUser,
+  loadUserRemote,
   saveUser,
   emptyUser,
   takePendingNorthStar,
@@ -53,37 +53,46 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!address) return;
-    const u = loadUser(address);
-    // Claim a north star typed on the landing page before login.
-    if (!u.northStar) {
-      const pending = takePendingNorthStar();
-      if (pending) {
-        u.northStar = pending;
-        saveUser(address, u);
+    let cancelled = false;
+    (async () => {
+      // Server-first so the same email/wallet sees the same data anywhere.
+      const u = await loadUserRemote(address);
+      // Claim a north star typed on the landing page before login.
+      if (!u.northStar) {
+        const pending = takePendingNorthStar();
+        if (pending) {
+          u.northStar = pending;
+          saveUser(address, u);
+        }
       }
-    }
-    setData(u);
-    setLoaded(true);
-    // Register/refresh this founder on the shared feed.
-    if (u.northStar) {
-      syncProfile(address, {
-        northStar: u.northStar,
-        starCount: u.reflections.length,
-        productUrl: u.productUrl,
-        productBlurb: u.productBlurb,
-        problem: u.problem,
+      if (cancelled) return;
+      setData(u);
+      setLoaded(true);
+
+      // Register/refresh this founder on the shared feed.
+      if (u.northStar) {
+        syncProfile(address, {
+          northStar: u.northStar,
+          starCount: u.reflections.length,
+          productUrl: u.productUrl,
+          productBlurb: u.productBlurb,
+          problem: u.problem,
+        });
+      }
+      // Welcome gift: auto-fund the new wallet with Arc USDC so they can back
+      // a founder right away. The drip route skips wallets that already have
+      // USDC, so this is safe to call on every load.
+      fetch("/api/drip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, chain: "arc" }),
+      }).catch(() => {
+        /* best-effort onboarding gift */
       });
-    }
-    // Welcome gift: auto-fund the new wallet with Arc USDC so they can back
-    // a founder right away. The drip route skips wallets that already have
-    // USDC, so this is safe to call on every load.
-    fetch("/api/drip", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ address, chain: "arc" }),
-    }).catch(() => {
-      /* best-effort onboarding gift */
-    });
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [address]);
 
   const fetchQuestion = useCallback(async (u: UserData) => {
@@ -94,7 +103,9 @@ export default function Dashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           northStar: u.northStar,
-          recentAnswers: u.reflections.slice(-5).map((r) => r.answer),
+          // Send the FULL history (every Q + A) so the next question builds
+          // on the whole journey, not just the last few answers.
+          reflections: u.reflections,
         }),
       });
       const json = await res.json();

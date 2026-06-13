@@ -44,6 +44,38 @@ export function loadUser(address: string): UserData {
 export function saveUser(address: string, data: UserData): void {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(keyFor(address), JSON.stringify(data));
+  // Also persist to the server so the same email/wallet sees the same data
+  // on any device or browser. Fire-and-forget; localStorage is the fast cache.
+  fetch("/api/userdata", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ address, data }),
+  }).catch(() => {
+    /* best-effort cross-device sync */
+  });
+}
+
+// Load the user's data, preferring the server (cross-device) and falling back
+// to localStorage. Returns the merged best-known state.
+export async function loadUserRemote(address: string): Promise<UserData> {
+  const local = loadUser(address);
+  try {
+    const res = await fetch(
+      `/api/userdata?address=${encodeURIComponent(address)}`,
+    );
+    const json = await res.json();
+    const remote = json?.data as UserData | null;
+    if (remote && typeof remote === "object") {
+      // Server is the source of truth across devices. Prefer it, but keep
+      // local if the server has fewer reflections (e.g. an offline edit).
+      if ((remote.reflections?.length ?? 0) >= (local.reflections?.length ?? 0)) {
+        return remote;
+      }
+    }
+  } catch {
+    /* offline / not configured → use local */
+  }
+  return local;
 }
 
 export function emptyUser(): UserData {

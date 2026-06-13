@@ -1,15 +1,19 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 // POST /api/question
-// Body: { northStar: string, recentAnswers: string[] }
+// Body: { northStar: string, reflections: { question, answer, date }[] }
 // Returns: { question: string, source: "ai" | "dummy" }
 //
-// If ANTHROPIC_API_KEY is set, generates a tailored question with Claude.
-// Otherwise falls back to a smart canned question so the whole loop works
-// end-to-end without a key (drop the key in .env.local later to go live).
+// Generates the next daily question from the founder's FULL reflection
+// history (every past question + answer), so it builds on the whole journey
+// rather than the last few answers. Claude when ANTHROPIC_API_KEY is set;
+// a rotating canned question otherwise.
 
+type Reflection = { question: string; answer: string; date?: string };
 type Body = {
   northStar?: string;
+  reflections?: Reflection[];
+  // legacy field, still accepted
   recentAnswers?: string[];
 };
 
@@ -36,7 +40,10 @@ export async function POST(request: Request) {
   }
 
   const northStar = (body.northStar ?? "").trim();
-  const recentAnswers = body.recentAnswers ?? [];
+  // Prefer full reflection history; fall back to legacy recentAnswers.
+  const reflections: Reflection[] =
+    body.reflections ??
+    (body.recentAnswers ?? []).map((a) => ({ question: "", answer: a }));
 
   if (!northStar) {
     return Response.json({ error: "northStar is required" }, { status: 400 });
@@ -45,17 +52,21 @@ export async function POST(request: Request) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return Response.json({
-      question: dummyQuestion(recentAnswers),
+      question: dummyQuestion(reflections.map((r) => r.answer)),
       source: "dummy",
     });
   }
 
   try {
     const client = new Anthropic({ apiKey });
+    // Give the model the ENTIRE journey: every past question + answer.
     const history =
-      recentAnswers.length > 0
-        ? `Their recent reflections (most recent last):\n${recentAnswers
-            .map((a, i) => `${i + 1}. ${a}`)
+      reflections.length > 0
+        ? `Their full reflection history so far (oldest first):\n${reflections
+            .map(
+              (r, i) =>
+                `${i + 1}.${r.date ? ` [${r.date}]` : ""} Q: ${r.question || "(daily prompt)"}\n   A: ${r.answer}`,
+            )
             .join("\n")}`
         : "They have not reflected yet — this is their first day.";
 
@@ -66,7 +77,7 @@ export async function POST(request: Request) {
       system:
         "You are Northstar, a warm but sharp daily companion for a founder pursuing a big goal (their 'north star'). " +
         "Each day you ask ONE short, pointed question that pulls them toward that goal. " +
-        "The question must be specific to their north star and informed by their recent reflections — never generic. " +
+        "The question must be specific to their north star and build on the ARC of their whole reflection history (notice patterns, follow up on what they said before, push them forward) — never generic, never a repeat. " +
         "Return ONLY the question itself: one sentence, no preamble, no quotes, no explanation. " +
         "Never use an em dash (—); use a comma, period, or colon instead.",
       messages: [
