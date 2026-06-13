@@ -46,3 +46,20 @@ export function saveUser(address: string, data: UserData): void {
 export function emptyUser(): UserData {
   return { northStar: "", reflections: [] };
 }
+
+// A north star typed on the landing page before login is parked here, then
+// claimed by the dashboard once a wallet exists. sessionStorage = cleared
+// when the tab closes, which is the right lifetime for a pre-login draft.
+const PENDING_KEY = "northstar:pending";
+
+export function setPendingNorthStar(value: string): void {
+  if (typeof window === "undefined") return;
+  window.sessionStorage.setItem(PENDING_KEY, value);
+}
+
+export function takePendingNorthStar(): string {
+  if (typeof window === "undefined") return "";
+  const v = window.sessionStorage.getItem(PENDING_KEY) ?? "";
+  window.sessionStorage.removeItem(PENDING_KEY);
+  return v;
+}

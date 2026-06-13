@@ -6,6 +6,7 @@ import {
   loadUser,
   saveUser,
   emptyUser,
+  takePendingNorthStar,
   type UserData,
   type Reflection,
 } from "@/lib/store";
@@ -36,6 +37,14 @@ export default function Dashboard() {
   useEffect(() => {
     if (!address) return;
     const u = loadUser(address);
+    // Claim a north star typed on the landing page before login.
+    if (!u.northStar) {
+      const pending = takePendingNorthStar();
+      if (pending) {
+        u.northStar = pending;
+        saveUser(address, u);
+      }
+    }
     setData(u);
     setDraft(u.northStar);
     setLoaded(true);
