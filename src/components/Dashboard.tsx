@@ -13,6 +13,7 @@ import {
 import SealPromise from "@/components/SealPromise";
 import NorthStarInput from "@/components/NorthStarInput";
 import Constellation from "@/components/Constellation";
+import Footer from "@/components/Footer";
 
 function todayISO(): string {
   // YYYY-MM-DD in local time, no Date.now() needed for display.
@@ -168,12 +169,18 @@ export default function Dashboard() {
   // --- North star set → daily reflection loop. ---
   return (
     <div className="w-full flex flex-col gap-6 text-left">
-      <div className="rounded-xl border border-black/10 dark:border-white/15 p-5">
-        <p className="text-xs uppercase tracking-wide text-neutral-500 mb-1">
+      {/* North Star — the page header, always in view */}
+      <header className="flex flex-col items-center gap-2 text-center pt-2 pb-4 border-b border-black/10 dark:border-white/10">
+        <span className="text-2xl" aria-hidden>
+          🌟
+        </span>
+        <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-400">
           Your North Star
         </p>
-        <p className="text-lg font-medium">{data.northStar}</p>
-      </div>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight leading-snug max-w-2xl">
+          {data.northStar}
+        </h1>
+      </header>
 
       {/* Today's question — or the encouragement moment after answering */}
       {cheer ? (
@@ -287,6 +294,8 @@ export default function Dashboard() {
           Log out
         </button>
       </div>
+
+      <Footer />
     </div>
   );
 }
