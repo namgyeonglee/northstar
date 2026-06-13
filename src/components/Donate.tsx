@@ -42,6 +42,11 @@ export default function Donate({ founderName, founderAddress, onDonated }: Props
       }
       setStatus({ phase: "sending" });
 
+      // Switch the wallet to Arc first — getWalletClient alone doesn't move
+      // the wallet's active network, so the tx would otherwise be rejected
+      // for a chain mismatch.
+      await primaryWallet.switchNetwork(ARC_CHAIN_ID);
+
       // Make sure the donor's wallet has Arc USDC (covers both the gift and
       // gas, since USDC is the native token). Server tops it up and waits.
       await fetch("/api/drip", {

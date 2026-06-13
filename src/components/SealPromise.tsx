@@ -86,6 +86,8 @@ export default function SealPromise({
       });
 
       setStatus({ phase: "signing" });
+      // Ensure the wallet is on Base Sepolia (it may be on Arc after donating).
+      await primaryWallet.switchNetwork(BASE_SEPOLIA.id);
       const walletClient = await primaryWallet.getWalletClient(
         BASE_SEPOLIA.id.toString(),
       );
