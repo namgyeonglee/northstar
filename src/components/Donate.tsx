@@ -42,6 +42,14 @@ export default function Donate({ founderName, founderAddress, onDonated }: Props
       }
       setStatus({ phase: "sending" });
 
+      // Make sure the donor's wallet has Arc USDC (covers both the gift and
+      // gas, since USDC is the native token). Server tops it up and waits.
+      await fetch("/api/drip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: primaryWallet.address, chain: "arc" }),
+      });
+
       // Arc: USDC is the native token, so a donation is a native value
       // transfer. 6 decimals (NOT 18) — parseUnits(amount, 6).
       const walletClient = await primaryWallet.getWalletClient(

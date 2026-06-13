@@ -23,7 +23,12 @@ export const arcTestnet = defineChain({
   testnet: true,
 });
 
-export const MIN_DONATION_USDC = 5;
+// Demo minimum (kept small so a freshly funded wallet can back several
+// founders). The product intent is a 5 USDC floor; lowered for testnet demos.
+export const MIN_DONATION_USDC = 1;
+
+// Amount auto-funded to a new user's wallet so they can try donating (Arc USDC).
+export const SIGNUP_FUND_USDC = 3;
 
 /** ArcScan transaction URL for a given hash. */
 export function arcTxUrl(hash: string): string {
