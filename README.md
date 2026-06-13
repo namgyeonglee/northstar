@@ -36,15 +36,33 @@ The most personal data you own — your dreams, your honest daily reflections, y
 - **Dynamic** — AI + Consumer (embedded wallet onboarding)
 - **ENS** — future-self identity *(stretch)*
 
-## Status
+## Live on-chain
 
-🚧 Built in 1 day, solo. See commit history for the block-by-block build.
+- **Contract** (`NorthstarPromises`) on **Base Sepolia**:
+  [`0xB30cAf465a6d944F90C4C131803541bcE235B926`](https://sepolia.basescan.org/address/0xB30cAf465a6d944F90C4C131803541bcE235B926)
+- Promise content lives on **IPFS**; only the URI + unlock time are sealed on-chain.
+
+## Demo flow (≈3 min)
+
+1. **Sign in** with email — Dynamic embedded wallet, no seed phrase.
+2. **Set your north star** — the one big goal.
+3. **Answer today's question** — AI-generated, specific to your goal; watch reflections accumulate.
+4. **"Where am I?"** — AI reads your trajectory and tells you where you are on the path.
+5. **Seal a promise to your future self** — write it → uploaded to IPFS → `sealPromise()` signed in your embedded wallet → confirmed on BaseScan. Tamper-proof, owned by you.
 
 ## Run locally
 
 ```bash
 npm install
+# .env.local needs: NEXT_PUBLIC_DYNAMIC_ENV_ID, NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
+# NEXT_PUBLIC_PROMISES_CONTRACT, and (optional) ANTHROPIC_API_KEY for live AI.
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000). Without `ANTHROPIC_API_KEY` the
+daily question and trajectory fall back to built-in prompts, so the full flow still demos.
+
+## Status
+
+✅ Built in 1 day, solo, at ETH Global NY 2026. Block-by-block in the commit history:
+login → daily AI question → trajectory → contract → on-chain promise.

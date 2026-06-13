@@ -87,7 +87,7 @@ export async function uploadPromise(content: PromiseContent): Promise<string> {
 /** Turn an ipfs:// URI into a public gateway URL for display. */
 export function ipfsToHttp(uri: string): string {
   if (uri.startsWith("ipfs://")) {
-    return `https://${CLIENT_ID}.ipfscdn.io/ipfs/${uri.slice("ipfs://".length)}`;
+    return `https://ipfs.io/ipfs/${uri.slice("ipfs://".length)}`;
   }
   return uri;
 }

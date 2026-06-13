@@ -9,6 +9,7 @@ import {
   BASE_SEPOLIA,
   uploadPromise,
   explorerTxUrl,
+  ipfsToHttp,
   type PromiseContent,
 } from "@/lib/promises";
 
@@ -21,7 +22,7 @@ type Status =
   | { phase: "idle" }
   | { phase: "uploading" }
   | { phase: "signing" }
-  | { phase: "done"; txHash: string }
+  | { phase: "done"; txHash: string; ipfsUri: string }
   | { phase: "error"; message: string };
 
 function oneYearFromNowUnix(): bigint {
@@ -69,7 +70,7 @@ export default function SealPromise({ northStar, reflectionCount }: Props) {
         account: walletClient.account,
       });
 
-      setStatus({ phase: "done", txHash });
+      setStatus({ phase: "done", txHash, ipfsUri: uri });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Something went wrong sealing your promise.";
@@ -88,14 +89,24 @@ export default function SealPromise({ northStar, reflectionCount }: Props) {
           and owned by you. Even if Northstar disappears, it lives in your
           wallet.
         </p>
-        <a
-          href={explorerTxUrl(status.txHash)}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="self-start text-sm underline text-emerald-700 dark:text-emerald-400 break-all"
-        >
-          View on BaseScan ↗
-        </a>
+        <div className="flex flex-col gap-1">
+          <a
+            href={explorerTxUrl(status.txHash)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="self-start text-sm underline text-emerald-700 dark:text-emerald-400"
+          >
+            View the on-chain transaction (BaseScan) ↗
+          </a>
+          <a
+            href={ipfsToHttp(status.ipfsUri)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="self-start text-sm underline text-emerald-700 dark:text-emerald-400"
+          >
+            Read your promise on IPFS ↗
+          </a>
+        </div>
       </div>
     );
   }
