@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
-import { loadUser, saveUser, emptyUser, type UserData } from "@/lib/store";
+import {
+  loadUser,
+  saveUser,
+  emptyUser,
+  type UserData,
+  type Reflection,
+} from "@/lib/store";
+
+function todayISO(): string {
+  // YYYY-MM-DD in local time, no Date.now() needed for display.
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default function Dashboard() {
   const { primaryWallet, handleLogOut } = useDynamicContext();
@@ -12,7 +23,11 @@ export default function Dashboard() {
   const [loaded, setLoaded] = useState(false);
   const [draft, setDraft] = useState("");
 
-  // Load this wallet's data once we know the address.
+  // Daily question state
+  const [question, setQuestion] = useState("");
+  const [questionLoading, setQuestionLoading] = useState(false);
+  const [answer, setAnswer] = useState("");
+
   useEffect(() => {
     if (!address) return;
     const u = loadUser(address);
@@ -20,6 +35,34 @@ export default function Dashboard() {
     setDraft(u.northStar);
     setLoaded(true);
   }, [address]);
+
+  const fetchQuestion = useCallback(async (u: UserData) => {
+    setQuestionLoading(true);
+    try {
+      const res = await fetch("/api/question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          northStar: u.northStar,
+          recentAnswers: u.reflections.slice(-5).map((r) => r.answer),
+        }),
+      });
+      const json = await res.json();
+      setQuestion(json.question ?? "What will you do today toward your goal?");
+    } catch {
+      setQuestion("What will you do today toward your goal?");
+    } finally {
+      setQuestionLoading(false);
+    }
+  }, []);
+
+  // Once we have a north star and no pending question, fetch today's question.
+  useEffect(() => {
+    if (loaded && data.northStar && !question && !questionLoading) {
+      fetchQuestion(data);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loaded, data.northStar]);
 
   function saveNorthStar() {
     const trimmed = draft.trim();
@@ -29,19 +72,39 @@ export default function Dashboard() {
     saveUser(address, next);
   }
 
+  function submitAnswer() {
+    const trimmed = answer.trim();
+    if (!trimmed) return;
+    const reflection: Reflection = {
+      question,
+      answer: trimmed,
+      date: todayISO(),
+    };
+    const next: UserData = {
+      ...data,
+      reflections: [...data.reflections, reflection],
+    };
+    setData(next);
+    saveUser(address, next);
+    setAnswer("");
+    setQuestion("");
+    // Next question will be fetched by the effect (question is now empty).
+    fetchQuestion(next);
+  }
+
   if (!loaded) {
     return <p className="text-sm text-neutral-500">Loading your journey…</p>;
   }
 
-  // No north star yet → ask for it.
+  // --- No north star yet → ask for it. ---
   if (!data.northStar) {
     return (
       <div className="w-full flex flex-col gap-4 text-left">
         <h2 className="text-xl font-medium text-center">
-          What's your north star?
+          What&apos;s your north star?
         </h2>
         <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
-          The one big goal you're moving toward. Be specific — this is what
+          The one big goal you&apos;re moving toward. Be specific — this is what
           every daily question will pull you back to.
         </p>
         <textarea
@@ -62,7 +125,7 @@ export default function Dashboard() {
     );
   }
 
-  // North star is set → placeholder for block 2 (daily question loop).
+  // --- North star set → daily reflection loop. ---
   return (
     <div className="w-full flex flex-col gap-6 text-left">
       <div className="rounded-xl border border-black/10 dark:border-white/15 p-5">
@@ -72,15 +135,52 @@ export default function Dashboard() {
         <p className="text-lg font-medium">{data.northStar}</p>
       </div>
 
-      <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
-        ✅ North star set. Your daily question loop comes next.
-      </p>
+      {/* Today's question */}
+      <div className="rounded-xl border border-black/10 dark:border-white/15 p-5 flex flex-col gap-3">
+        <p className="text-xs uppercase tracking-wide text-neutral-500">
+          Today&apos;s question
+        </p>
+        {questionLoading ? (
+          <p className="text-base text-neutral-400 animate-pulse">
+            Thinking of the right question…
+          </p>
+        ) : (
+          <p className="text-lg font-medium">{question}</p>
+        )}
+        <textarea
+          value={answer}
+          onChange={(e) => setAnswer(e.target.value)}
+          rows={2}
+          placeholder="Answer in a sentence or two…"
+          disabled={questionLoading}
+          className="w-full rounded-lg border border-black/10 dark:border-white/15 bg-transparent p-3 text-base outline-none focus:border-black/30 dark:focus:border-white/30 disabled:opacity-50"
+        />
+        <button
+          onClick={submitAnswer}
+          disabled={!answer.trim() || questionLoading}
+          className="self-end rounded-full bg-foreground text-background px-5 py-2 text-sm font-medium disabled:opacity-40 transition-opacity"
+        >
+          Save reflection
+        </button>
+      </div>
+
+      {/* Reflection count (full trajectory view comes in block 3) */}
+      {data.reflections.length > 0 && (
+        <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
+          🌱 {data.reflections.length} reflection
+          {data.reflections.length === 1 ? "" : "s"} so far. Your trajectory is
+          taking shape.
+        </p>
+      )}
 
       <div className="flex items-center justify-center gap-4 text-xs text-neutral-400">
         <span className="font-mono">
           {address.slice(0, 6)}…{address.slice(-4)}
         </span>
-        <button onClick={handleLogOut} className="underline hover:text-neutral-600">
+        <button
+          onClick={handleLogOut}
+          className="underline hover:text-neutral-600"
+        >
           Log out
         </button>
       </div>
