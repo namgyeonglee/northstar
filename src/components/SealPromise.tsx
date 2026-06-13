@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { isEthereumWallet } from "@dynamic-labs/ethereum";
+import EnsBadge from "@/components/EnsBadge";
 import {
   CONTRACT_ADDRESS,
   PROMISES_ABI,
@@ -150,6 +151,7 @@ export default function SealPromise({
             </a>
           )}
         </div>
+        <EnsBadge />
       </div>
     );
   }
@@ -183,6 +185,7 @@ export default function SealPromise({
             Read your promise on IPFS ↗
           </a>
         </div>
+        <EnsBadge />
       </div>
     );
   }
