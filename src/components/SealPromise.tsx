@@ -32,6 +32,7 @@ type Props = {
 type Status =
   | { phase: "idle" }
   | { phase: "uploading" }
+  | { phase: "funding" }
   | { phase: "signing" }
   | { phase: "done"; txHash: string; ipfsUri: string }
   | { phase: "error"; message: string };
@@ -72,6 +73,17 @@ export default function SealPromise({
       if (!isEthereumWallet(primaryWallet)) {
         throw new Error("This wallet can't sign Ethereum transactions.");
       }
+
+      // 2a. Make sure the embedded wallet has gas. New email wallets start at
+      // zero, so we top them up server-side and WAIT for it to confirm before
+      // signing (otherwise the seal races a zero balance and reverts).
+      setStatus({ phase: "funding" });
+      await fetch("/api/drip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address: primaryWallet.address }),
+      });
+
       setStatus({ phase: "signing" });
       const walletClient = await primaryWallet.getWalletClient(
         BASE_SEPOLIA.id.toString(),
@@ -175,7 +187,10 @@ export default function SealPromise({
     );
   }
 
-  const busy = status.phase === "uploading" || status.phase === "signing";
+  const busy =
+    status.phase === "uploading" ||
+    status.phase === "funding" ||
+    status.phase === "signing";
 
   return (
     <div className="rounded-xl border border-black/10 dark:border-white/15 p-5 flex flex-col gap-3 text-left">
@@ -201,9 +216,11 @@ export default function SealPromise({
       >
         {status.phase === "uploading"
           ? "Uploading to IPFS…"
-          : status.phase === "signing"
-            ? "Confirm in your wallet…"
-            : "Seal on-chain"}
+          : status.phase === "funding"
+            ? "Preparing your wallet…"
+            : status.phase === "signing"
+              ? "Confirm in your wallet…"
+              : "Seal on-chain"}
       </button>
       {status.phase === "error" && (
         <p className="text-sm text-red-500 break-words">{status.message}</p>
