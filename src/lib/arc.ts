@@ -9,11 +9,16 @@ import { defineChain } from "viem";
 
 export const ARC_CHAIN_ID = 5042002;
 
+// IMPORTANT: Arc's native USDC gas token uses 18 decimals on-chain (verified
+// against the testnet RPC + Circle faucet amounts), NOT the 6 decimals USDC
+// uses as an ERC-20 on other chains. Use ARC_DECIMALS everywhere for value math.
+export const ARC_DECIMALS = 18;
+
 // viem has no built-in Arc chain, so define it.
 export const arcTestnet = defineChain({
   id: ARC_CHAIN_ID,
   name: "Arc Testnet",
-  nativeCurrency: { name: "USD Coin", symbol: "USDC", decimals: 6 },
+  nativeCurrency: { name: "USD Coin", symbol: "USDC", decimals: ARC_DECIMALS },
   rpcUrls: {
     default: { http: ["https://rpc.testnet.arc.network"] },
   },

@@ -8,7 +8,7 @@ import {
 } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { baseSepolia } from "viem/chains";
-import { arcTestnet, SIGNUP_FUND_USDC } from "@/lib/arc";
+import { arcTestnet, ARC_DECIMALS, SIGNUP_FUND_USDC } from "@/lib/arc";
 
 // POST /api/drip  { address: "0x...", chain?: "base" | "arc" }
 //
@@ -26,8 +26,8 @@ const BASE_RPC = process.env.BASE_SEPOLIA_RPC ?? "https://sepolia.base.org";
 
 const BASE_DRIP = parseEther("0.001");
 const BASE_ALREADY = parseEther("0.0005");
-const ARC_DRIP = parseUnits(String(SIGNUP_FUND_USDC), 6); // Arc USDC = 6 decimals
-const ARC_ALREADY = parseUnits("1", 6); // skip if they already have >= 1 USDC
+const ARC_DRIP = parseUnits(String(SIGNUP_FUND_USDC), ARC_DECIMALS); // Arc USDC = 18 decimals
+const ARC_ALREADY = parseUnits("1", ARC_DECIMALS); // skip if they already have >= 1 USDC
 
 export async function POST(request: Request) {
   let address: string;

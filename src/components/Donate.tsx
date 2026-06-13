@@ -4,7 +4,13 @@ import { useState } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import { isEthereumWallet } from "@dynamic-labs/ethereum";
 import { parseUnits } from "viem";
-import { arcTestnet, ARC_CHAIN_ID, MIN_DONATION_USDC, arcTxUrl } from "@/lib/arc";
+import {
+  arcTestnet,
+  ARC_CHAIN_ID,
+  ARC_DECIMALS,
+  MIN_DONATION_USDC,
+  arcTxUrl,
+} from "@/lib/arc";
 
 type Props = {
   // The founder being backed.
@@ -56,13 +62,13 @@ export default function Donate({ founderName, founderAddress, onDonated }: Props
       });
 
       // Arc: USDC is the native token, so a donation is a native value
-      // transfer. 6 decimals (NOT 18) — parseUnits(amount, 6).
+      // transfer. Arc's native USDC uses 18 decimals (ARC_DECIMALS).
       const walletClient = await primaryWallet.getWalletClient(
         ARC_CHAIN_ID.toString(),
       );
       const txHash = await walletClient.sendTransaction({
         to: founderAddress,
-        value: parseUnits(String(amount), 6),
+        value: parseUnits(String(amount), ARC_DECIMALS),
         chain: arcTestnet,
         account: walletClient.account,
       });
