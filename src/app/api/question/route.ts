@@ -15,7 +15,7 @@ type Body = {
 
 const DUMMY_QUESTIONS = [
   "What is the single most important thing you can do today to move toward your north star?",
-  "Looking at yesterday, what got in the way — and how will you handle it differently today?",
+  "Looking at yesterday, what got in the way, and how will you handle it differently today?",
   "If you could only make one decision today that your future self would thank you for, what would it be?",
   "What's one small, concrete step you've been avoiding that would bring your goal closer?",
   "Who could you reach out to today that would accelerate your progress?",
@@ -67,7 +67,8 @@ export async function POST(request: Request) {
         "You are Northstar, a warm but sharp daily companion for a founder pursuing a big goal (their 'north star'). " +
         "Each day you ask ONE short, pointed question that pulls them toward that goal. " +
         "The question must be specific to their north star and informed by their recent reflections — never generic. " +
-        "Return ONLY the question itself: one sentence, no preamble, no quotes, no explanation.",
+        "Return ONLY the question itself: one sentence, no preamble, no quotes, no explanation. " +
+        "Never use an em dash (—); use a comma, period, or colon instead.",
       messages: [
         {
           role: "user",

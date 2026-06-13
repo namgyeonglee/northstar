@@ -93,7 +93,7 @@ export default function Dashboard() {
       const json = await res.json();
       setTrajectory(json.summary ?? "");
     } catch {
-      setTrajectory("Couldn't read your trajectory just now — try again.");
+      setTrajectory("Couldn't read your trajectory just now. Try again.");
     } finally {
       setTrajectoryLoading(false);
     }
@@ -136,10 +136,10 @@ export default function Dashboard() {
     return (
       <div className="w-full flex flex-col gap-4 text-left">
         <h2 className="text-xl font-medium text-center">
-          What&apos;s your north star?
+          What&apos;s your North Star?
         </h2>
         <p className="text-sm text-neutral-500 dark:text-neutral-400 text-center">
-          The one big goal you&apos;re moving toward. Be specific — this is what
+          The one big goal you&apos;re moving toward. Be specific. This is what
           every daily question will pull you back to.
         </p>
         <textarea
@@ -154,7 +154,7 @@ export default function Dashboard() {
           disabled={!draft.trim()}
           className="self-center rounded-full bg-foreground text-background px-6 py-2.5 text-sm font-medium disabled:opacity-40 transition-opacity"
         >
-          Set my north star →
+          Set my North Star →
         </button>
       </div>
     );
@@ -165,7 +165,7 @@ export default function Dashboard() {
     <div className="w-full flex flex-col gap-6 text-left">
       <div className="rounded-xl border border-black/10 dark:border-white/15 p-5">
         <p className="text-xs uppercase tracking-wide text-neutral-500 mb-1">
-          Your north star
+          Your North Star
         </p>
         <p className="text-lg font-medium">{data.northStar}</p>
       </div>

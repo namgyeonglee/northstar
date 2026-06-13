@@ -14,7 +14,7 @@ type Body = { northStar?: string; reflections?: Reflection[] };
 function dummySummary(northStar: string, reflections: Reflection[]): string {
   const n = reflections.length;
   if (n === 0) {
-    return `You've set your north star — "${northStar}" — but haven't reflected yet. Your journey starts with today's first answer.`;
+    return `You've set your North Star, "${northStar}", but haven't reflected yet. Your journey starts with today's first answer.`;
   }
   const days = new Set(reflections.map((r) => r.date)).size;
   const momentum =
@@ -23,7 +23,7 @@ function dummySummary(northStar: string, reflections: Reflection[]): string {
       : n >= 2
         ? "You're finding your rhythm"
         : "You've taken the first step";
-  return `${momentum}: ${n} reflection${n === 1 ? "" : "s"} across ${days} day${days === 1 ? "" : "s"}, all pointed at "${northStar}". Keep showing up — every answer moves the needle.`;
+  return `${momentum}: ${n} reflection${n === 1 ? "" : "s"} across ${days} day${days === 1 ? "" : "s"}, all pointed at "${northStar}". Keep showing up. Every answer moves the needle.`;
 }
 
 export async function POST(request: Request) {
@@ -63,7 +63,8 @@ export async function POST(request: Request) {
         "You are Northstar, a daily companion for a founder pursuing a big goal. " +
         "Given their north star and the log of their daily reflections, tell them where they are on the path: " +
         "name the momentum and direction you see, the most encouraging signal, and the one thing to focus on next. " +
-        "Be specific to what they actually wrote. Warm, honest, motivating. 2–4 sentences. No preamble, no lists, no headers.",
+        "Be specific to what they actually wrote. Warm, honest, motivating. 2 to 4 sentences. No preamble, no lists, no headers. " +
+        "Never use an em dash (—); use a comma, period, or colon instead.",
       messages: [
         {
           role: "user",

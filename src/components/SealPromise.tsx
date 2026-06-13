@@ -107,7 +107,7 @@ export default function SealPromise({
     return (
       <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 flex flex-col gap-3 text-left">
         <p className="text-xs uppercase tracking-wide text-emerald-600">
-          Promise sealed — forever yours
+          Promise sealed, forever yours
         </p>
         <p className="text-base leading-relaxed italic">
           &ldquo;{sealed.text}&rdquo;
@@ -146,7 +146,7 @@ export default function SealPromise({
     return (
       <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-5 flex flex-col gap-3 text-left">
         <p className="text-xs uppercase tracking-wide text-emerald-600">
-          Promise sealed — forever yours
+          Promise sealed, forever yours
         </p>
         <p className="text-base leading-relaxed">
           Your promise to your future self is now sealed on Base, tamper-proof
@@ -184,7 +184,7 @@ export default function SealPromise({
       </p>
       <p className="text-sm text-neutral-500 dark:text-neutral-400">
         Write a promise to who you want to be a year from now. It&apos;s sealed
-        on-chain — tamper-proof, timestamped, and owned by you.
+        on-chain. Tamper-proof, timestamped, and owned by you.
       </p>
       <textarea
         value={text}

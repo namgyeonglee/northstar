@@ -15,8 +15,21 @@ const EXAMPLE_NORTH_STARS = [
 
 export default function Home() {
   const isLoggedIn = useIsLoggedIn();
-  const { setShowAuthFlow } = useDynamicContext();
+  const { setShowAuthFlow, sdkHasLoaded } = useDynamicContext();
   const [draft, setDraft] = useState("");
+
+  // Wait for the SDK to settle before deciding which screen to show.
+  // Without this, the landing flashes for a moment before the dashboard
+  // appears for an already-logged-in user.
+  if (!sdkHasLoaded) {
+    return (
+      <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
+        <span className="text-4xl animate-pulse" aria-hidden>
+          🌟
+        </span>
+      </main>
+    );
+  }
 
   // Once logged in, the dashboard takes over (and claims any pending draft).
   if (isLoggedIn) {
@@ -39,14 +52,23 @@ export default function Home() {
   return (
     <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
       <div className="w-full max-w-xl flex flex-col items-center text-center gap-8">
-        <div className="flex flex-col items-center gap-3">
-          <span className="text-5xl" aria-hidden>
+        <div className="flex flex-col items-center gap-4">
+          <span className="text-6xl" aria-hidden>
             🌟
           </span>
-          <h1 className="text-4xl font-semibold tracking-tight">Northstar</h1>
+          <h1 className="text-5xl font-semibold tracking-tight">Northstar</h1>
           <p className="text-lg text-neutral-500 dark:text-neutral-400 max-w-md">
-            Your daily companion toward the one goal that matters. Start by
-            naming your north star.
+            A daily companion toward the one goal that matters. Name your North
+            Star, answer a question a day, and watch yourself get closer.
+          </p>
+          <p className="text-sm text-neutral-400">
+            Already started?{" "}
+            <button
+              onClick={() => setShowAuthFlow(true)}
+              className="underline font-medium text-foreground/80 hover:text-foreground"
+            >
+              Log in
+            </button>
           </p>
         </div>
 
@@ -67,8 +89,8 @@ export default function Home() {
             Set my north star →
           </button>
           <p className="text-xs text-neutral-400 text-center">
-            We&apos;ll ask for your email to save it — no seed phrase, no
-            wallet to install.
+            We&apos;ll ask for your email to save it. No seed phrase, no wallet
+            to install.
           </p>
         </div>
 
