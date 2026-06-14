@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 const EXAMPLE_NORTH_STARS = [
   "Launch my SaaS and reach $10k MRR within a year",
@@ -25,10 +26,13 @@ export default function NorthStarInput({ onCommit, onLogin, footnote }: Props) {
   return (
     <div className="w-full max-w-xl flex flex-col items-center text-center gap-8">
       <div className="flex flex-col items-center gap-4">
-        <span className="text-6xl" aria-hidden>
-          🌟
-        </span>
-        <h1 className="text-5xl font-semibold tracking-tight">Northstar</h1>
+        <Image
+          src="/logo.png"
+          alt="Northstar"
+          width={160}
+          height={160}
+          priority
+        />
         <p className="text-lg text-neutral-500 dark:text-neutral-400 max-w-md">
           A daily companion toward the one goal that matters. Name your North
           Star, answer a question a day, and watch yourself get closer.

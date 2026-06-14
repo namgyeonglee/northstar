@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useIsLoggedIn, useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import Dashboard from "@/components/Dashboard";
 import NorthStarInput from "@/components/NorthStarInput";
@@ -14,9 +15,14 @@ export default function Home() {
   if (!sdkHasLoaded) {
     return (
       <main className="flex-1 flex flex-col items-center justify-center px-6 py-16">
-        <span className="text-4xl animate-pulse" aria-hidden>
-          🌟
-        </span>
+        <Image
+          src="/logo.png"
+          alt="Northstar"
+          width={72}
+          height={72}
+          className="animate-pulse"
+          priority
+        />
       </main>
     );
   }

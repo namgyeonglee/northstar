@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
 import { useDynamicContext } from "@dynamic-labs/sdk-react-core";
 import {
@@ -229,9 +230,7 @@ export default function Dashboard() {
     <div className="w-full flex flex-col gap-6 text-left">
       {/* North Star — the page header, always in view */}
       <header className="flex flex-col items-center gap-2 text-center pt-2 pb-4 border-b border-black/10 dark:border-white/10">
-        <span className="text-2xl" aria-hidden>
-          🌟
-        </span>
+        <Image src="/logo.png" alt="Northstar" width={56} height={56} priority />
         <p className="text-[11px] uppercase tracking-[0.25em] text-neutral-400">
           Your North Star
         </p>
