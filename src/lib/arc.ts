@@ -9,12 +9,19 @@ import { defineChain } from "viem";
 
 export const ARC_CHAIN_ID = 5042002;
 
-// Arc's native USDC uses 18 decimals ON-CHAIN — PROVEN by a real transfer:
-// sending parseUnits("0.5", 18) credited the recipient exactly
-// 500000000000000000 wei (= 0.5 at 18 decimals). The wallet UI previously
-// showed scary numbers only because its nativeCurrency.decimals was set to 6;
-// keep BOTH this and the Dynamic network config at 18 so value + display agree.
-export const ARC_DECIMALS = 18;
+// Arc has TWO USDC interfaces (Circle docs):
+//  - NATIVE gas token: 18 decimals. Used to pay gas.
+//  - ERC-20 USDC token at 0x3600…0000: 6 decimals. Used for transfers.
+// We send DONATIONS as the ERC-20 token so the wallet shows the human amount
+// correctly ("1 USDC"); native is just gas. Mixing the two decimals is the #1
+// Arc footgun.
+export const ARC_NATIVE_DECIMALS = 18; // gas
+export const USDC_ERC20_ADDRESS =
+  "0x3600000000000000000000000000000000000000" as `0x${string}`;
+export const USDC_DECIMALS = 6; // ERC-20 USDC
+
+// Back-compat alias (native gas math).
+export const ARC_DECIMALS = ARC_NATIVE_DECIMALS;
 
 // viem has no built-in Arc chain, so define it.
 export const arcTestnet = defineChain({
