@@ -217,7 +217,7 @@ export default function SealPromise({
       <button
         onClick={seal}
         disabled={!text.trim() || busy}
-        className="self-start rounded-full bg-foreground text-background px-5 py-2 text-sm font-medium disabled:opacity-40 transition-opacity"
+        className="self-end rounded-full bg-foreground text-background px-5 py-2 text-sm font-medium disabled:opacity-40 transition-opacity"
       >
         {status.phase === "uploading"
           ? "Uploading to IPFS…"
