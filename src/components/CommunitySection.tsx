@@ -25,7 +25,23 @@ export default function CommunitySection({
 
   useEffect(() => {
     if (!address) return;
-    readUsdcBalance(address).then(setUsdc);
+    let cancelled = false;
+    let tries = 0;
+    // The signup USDC gift (drip) lands a few seconds after login, so poll a
+    // few times if the balance is still 0 instead of showing 0 forever.
+    async function poll() {
+      const bal = await readUsdcBalance(address);
+      if (cancelled) return;
+      setUsdc(bal);
+      tries += 1;
+      if (Number(bal) === 0 && tries < 6) {
+        setTimeout(poll, 4000);
+      }
+    }
+    poll();
+    return () => {
+      cancelled = true;
+    };
   }, [address]);
 
   const usdcDisplay =
