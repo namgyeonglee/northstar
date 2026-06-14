@@ -34,7 +34,7 @@ const arcTestnetNetwork = {
   iconUrls: ["https://app.dynamic.xyz/assets/networks/usdc.svg"],
   name: "Arc Testnet",
   nativeCurrency: {
-    decimals: 18,
+    decimals: 6,
     name: "USD Coin",
     symbol: "USDC",
     iconUrl: "https://app.dynamic.xyz/assets/networks/usdc.svg",
