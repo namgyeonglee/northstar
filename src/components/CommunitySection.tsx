@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { readUsdcBalance } from "@/lib/arc";
 import type { UserData } from "@/lib/store";
+import Withdraw from "@/components/Withdraw";
 
 // One section below the constellation: your Arc USDC balance, your public
 // founder profile (product + problem), and the entry into the community feed.
@@ -34,11 +35,17 @@ export default function CommunitySection({
     <div className="rounded-xl border border-black/10 dark:border-white/15 p-5 flex flex-col gap-4">
       {/* balance + community entry */}
       <div className="flex items-center justify-between gap-3">
-        <div>
+        <div className="flex flex-col gap-1">
           <p className="text-[11px] uppercase tracking-wide text-neutral-400">
             Your USDC balance (Arc)
           </p>
           <p className="text-lg font-medium">{usdcDisplay}</p>
+          {usdc !== null && Number(usdc) > 0 && (
+            <Withdraw
+              balance={usdc}
+              onDone={() => readUsdcBalance(address).then(setUsdc)}
+            />
+          )}
         </div>
         <button
           onClick={onOpenFeed}
