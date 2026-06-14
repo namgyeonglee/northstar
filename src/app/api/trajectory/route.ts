@@ -1,5 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 
+// Allow time for Claude (adaptive thinking) on longer histories.
+export const maxDuration = 60;
+
 // POST /api/trajectory
 // Body: { northStar: string, reflections: { question: string, answer: string, date: string }[] }
 // Returns: { summary: string, source: "ai" | "dummy" }

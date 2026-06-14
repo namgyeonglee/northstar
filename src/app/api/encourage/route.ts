@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
+export const maxDuration = 60;
+
 // POST /api/encourage
 // Body: { northStar: string, question: string, answer: string }
 // Returns: { message: string, source: "ai" | "dummy" }
