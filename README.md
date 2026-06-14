@@ -1,68 +1,58 @@
 # 🌟 Northstar
 
-**A daily AI companion that keeps founders moving toward their north star — and lets them seal a promise to their future self, on-chain.**
+**A daily AI companion that keeps founders pointed at their North Star, and a community that backs them with real support.**
 
-> Built at ETH Global New York 2026.
+> Built at ETH Global New York 2026. Live: **https://whatisyournorthstar.vercel.app**
 
 ---
 
 ## The problem
 
-Founders and side-project builders carry a big dream — their *north star*. But daily noise buries it. There's no companion asking, every single day: *"Did you move toward it today?"*
-
-Goals don't fail from lack of ambition. They fail from lack of a daily, honest check-in.
+Founders carry a big dream, their *North Star*. But the daily noise buries it, and the journey is lonely. There's no companion asking, every day, "did you move toward it?", and no easy way for people who believe in you to actually back you.
 
 ## What Northstar does
 
-1. **Set your north star** — your one big goal.
-2. **Answer one question a day** — the AI asks a short, pointed question that pulls you toward your north star. You answer briefly.
-3. **See your trajectory** — answers accumulate; the AI shows you where you are on the path.
-4. **Seal a promise to your future self — on-chain** — write a promise to who you want to be in 1 year. It's sealed as a tamper-proof, self-owned time capsule. Even if this app disappears, your promise and your journey live forever in your own wallet.
+1. **Name your North Star.** The one goal that matters. (Log in with email, no seed phrase.)
+2. **Answer one AI question a day.** Claude asks a short, pointed question tailored to your goal and your whole history of answers, then encourages you. Reflections accumulate into a growing **constellation** (7 stars per constellation; complete one and a new one begins) and a **"My Universe"** view of your journey.
+3. **Join the community feed.** Every founder's North Star, how diligently they reflect (their stars), what they're building, and the problem they're facing right now. New founders get a 🌱 badge.
+4. **Back a founder with USDC.** Send any founder USDC on **Arc** (Circle's stablecoin L1) plus a message of encouragement or an offer to help. Support shows up on their feed. The daily reflection is the heart; backing is how the community rallies around it.
 
 ## Why on-chain?
 
-The most personal data you own — your dreams, your honest daily reflections, your promise to your future self — shouldn't live on a platform that can vanish or change the terms. Northstar makes that promise **tamper-proof, timestamped, and owned by you**, not us.
+Support that crosses borders instantly, in stablecoin, with no middleman, is something only crypto makes easy. A founder in any country can be backed by anyone, in seconds, in USDC.
 
 ## Stack
 
-- **Frontend**: Next.js (App Router) + TypeScript + Tailwind
-- **Auth / Wallet**: Dynamic (email/social embedded wallet — frictionless daily login, no seed phrase)
-- **AI**: LLM-generated daily questions + trajectory analysis
-- **Contract**: `sealPromise(uri, unlockTime)` on **Base Sepolia**
-- **Storage**: IPFS (promise content) → URI sealed on-chain
+- **Frontend**: Next.js 16 + React 19 + TypeScript + Tailwind
+- **Auth / wallet**: Dynamic embedded wallets (email login, no seed phrase)
+- **AI**: Anthropic Claude (`claude-opus-4-8`) for daily questions, encouragement, and trajectory analysis, fed the founder's full reflection history
+- **Payments**: USDC on **Arc Testnet** (Circle L1). Donations use the ERC-20 USDC interface; new wallets are auto-funded with gas + USDC so onboarding is frictionless
+- **Storage**: Upstash Redis (single source of truth, so the same email sees the same data on any device)
+- **Also**: an optional on-chain "promise to your future self" sealed on Base Sepolia + IPFS, and an ENS identity (`northstar.eth`)
 
 ## Sponsor tracks
 
-- **Dynamic** — AI + Consumer (embedded wallet onboarding)
-- **ENS** — future-self identity *(stretch)*
-
-## Live on-chain
-
-- **Contract** (`NorthstarPromises`) on **Base Sepolia**:
-  [`0xB30cAf465a6d944F90C4C131803541bcE235B926`](https://sepolia.basescan.org/address/0xB30cAf465a6d944F90C4C131803541bcE235B926)
-- Promise content lives on **IPFS**; only the URI + unlock time are sealed on-chain.
+- **Dynamic — Best Money App**: embedded-wallet onboarding + peer-to-peer USDC backing of founders
+- **Arc (Circle) — Extend the Arc Ecosystem**: USDC donations settled on Arc, with auto gas/USDC onboarding
 
 ## Demo flow (≈3 min)
 
-1. **Sign in** with email — Dynamic embedded wallet, no seed phrase.
-2. **Set your north star** — the one big goal.
-3. **Answer today's question** — AI-generated, specific to your goal; watch reflections accumulate.
-4. **"Where am I?"** — AI reads your trajectory and tells you where you are on the path.
-5. **Seal a promise to your future self** — write it → uploaded to IPFS → `sealPromise()` signed in your embedded wallet → confirmed on BaseScan. Tamper-proof, owned by you.
+1. Land on the page, type your North Star, log in with email.
+2. Answer today's AI question, get encouragement, watch a star light up.
+3. Open **"See the community"**, view other founders, their products, and the problems they're facing.
+4. **Back a founder with 1 USDC** + a message. See it confirmed on Arc and appear on their feed.
+5. (Bonus) Seal a promise to your future self on-chain.
 
 ## Run locally
 
 ```bash
 npm install
 # .env.local needs: NEXT_PUBLIC_DYNAMIC_ENV_ID, NEXT_PUBLIC_THIRDWEB_CLIENT_ID,
-# NEXT_PUBLIC_PROMISES_CONTRACT, and (optional) ANTHROPIC_API_KEY for live AI.
+# NEXT_PUBLIC_PROMISES_CONTRACT, NEXT_PUBLIC_ENS_NAME, ANTHROPIC_API_KEY,
+# FAUCET_PRIVATE_KEY, BASE_SEPOLIA_RPC, KV_REST_API_URL, KV_REST_API_TOKEN
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Without `ANTHROPIC_API_KEY` the
-daily question and trajectory fall back to built-in prompts, so the full flow still demos.
-
 ## Status
 
-✅ Built in 1 day, solo, at ETH Global NY 2026. Block-by-block in the commit history:
-login → daily AI question → trajectory → contract → on-chain promise.
+✅ Built solo at ETH Global NY 2026. See the commit history for the block-by-block build.
