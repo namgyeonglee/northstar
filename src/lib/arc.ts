@@ -44,6 +44,28 @@ export const MIN_DONATION_USDC = 1;
 // Amount auto-funded to a new user's wallet so they can try donating (Arc USDC).
 export const SIGNUP_FUND_USDC = 3;
 
+import { createPublicClient, http, erc20Abi, formatUnits } from "viem";
+
+const arcReadClient = createPublicClient({
+  chain: arcTestnet,
+  transport: http(),
+});
+
+/** Read an address's ERC-20 USDC balance on Arc, formatted (6 decimals). */
+export async function readUsdcBalance(address: string): Promise<string> {
+  try {
+    const raw = (await arcReadClient.readContract({
+      address: USDC_ERC20_ADDRESS,
+      abi: erc20Abi,
+      functionName: "balanceOf",
+      args: [address as `0x${string}`],
+    })) as bigint;
+    return formatUnits(raw, USDC_DECIMALS);
+  } catch {
+    return "0";
+  }
+}
+
 /** ArcScan transaction URL for a given hash. */
 export function arcTxUrl(hash: string): string {
   return `https://testnet.arcscan.app/tx/${hash}`;
