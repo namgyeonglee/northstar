@@ -1,8 +1,6 @@
-// Northstar — minimal client-side store (localStorage).
-// For a 1-day hackathon build we skip a backend DB; everything the user
-// types lives in the browser, keyed by wallet address. On-chain sealing
-// (block 5) is what makes the *promise* permanent — daily reflections are
-// intentionally local + private.
+// Northstar — user data store. SERVER-ONLY (Upstash via /api/userdata).
+// No localStorage: the same email/wallet must see the same data on any
+// device or browser, so the server is the single source of truth.
 
 export type Reflection = {
   question: string;
@@ -24,67 +22,40 @@ export type UserData = {
   };
 };
 
-const KEY_PREFIX = "northstar:";
-
-function keyFor(address: string) {
-  return `${KEY_PREFIX}${address.toLowerCase()}`;
+export function emptyUser(): UserData {
+  return { northStar: "", reflections: [] };
 }
 
-export function loadUser(address: string): UserData {
-  if (typeof window === "undefined") return emptyUser();
-  const raw = window.localStorage.getItem(keyFor(address));
-  if (!raw) return emptyUser();
-  try {
-    return JSON.parse(raw) as UserData;
-  } catch {
-    return emptyUser();
-  }
-}
-
-export function saveUser(address: string, data: UserData): void {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(keyFor(address), JSON.stringify(data));
-  // Also persist to the server so the same email/wallet sees the same data
-  // on any device or browser. Fire-and-forget; localStorage is the fast cache.
-  fetch("/api/userdata", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ address, data }),
-  }).catch(() => {
-    /* best-effort cross-device sync */
-  });
-}
-
-// Load the user's data, preferring the server (cross-device) and falling back
-// to localStorage. Returns the merged best-known state.
+/** Load the user's data from the server (single source of truth). */
 export async function loadUserRemote(address: string): Promise<UserData> {
-  const local = loadUser(address);
+  if (!address) return emptyUser();
   try {
     const res = await fetch(
       `/api/userdata?address=${encodeURIComponent(address)}`,
     );
     const json = await res.json();
     const remote = json?.data as UserData | null;
-    if (remote && typeof remote === "object") {
-      // Server is the source of truth across devices. Prefer it, but keep
-      // local if the server has fewer reflections (e.g. an offline edit).
-      if ((remote.reflections?.length ?? 0) >= (local.reflections?.length ?? 0)) {
-        return remote;
-      }
-    }
+    if (remote && typeof remote === "object") return remote;
   } catch {
-    /* offline / not configured → use local */
+    /* network/offline → empty */
   }
-  return local;
+  return emptyUser();
 }
 
-export function emptyUser(): UserData {
-  return { northStar: "", reflections: [] };
+/** Persist the user's data to the server. */
+export function saveUser(address: string, data: UserData): void {
+  if (!address) return;
+  fetch("/api/userdata", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ address, data }),
+  }).catch(() => {
+    /* best-effort; UI already updated optimistically */
+  });
 }
 
-// A north star typed on the landing page before login is parked here, then
-// claimed by the dashboard once a wallet exists. sessionStorage = cleared
-// when the tab closes, which is the right lifetime for a pre-login draft.
+// A north star typed on the landing page before login is parked here (tab
+// session only, no wallet yet), then claimed by the dashboard after login.
 const PENDING_KEY = "northstar:pending";
 
 export function setPendingNorthStar(value: string): void {
@@ -99,9 +70,8 @@ export function takePendingNorthStar(): string {
   return v;
 }
 
-// Mirror the founder's public profile to the server (Upstash) so it appears
-// on the shared community feed. Fire-and-forget; localStorage stays the fast
-// local source of truth for the owner's own session.
+// Mirror the founder's public profile to the server so it appears on the
+// shared community feed.
 export function syncProfile(
   address: string,
   profile: {
