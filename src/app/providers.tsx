@@ -51,7 +51,16 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         environmentId: ENV_ID,
         walletConnectors: [EthereumWalletConnectors],
         overrides: {
-          evmNetworks: [baseSepoliaNetwork, arcTestnetNetwork],
+          // Callback form so our entries WIN over any cached/dashboard copy.
+          // Arc (5042002) native USDC is 18 decimals; a stale 6-decimal entry
+          // would otherwise make the confirm popup show "1,000,000,000,000".
+          evmNetworks: (dashboardNetworks) => [
+            ...dashboardNetworks.filter(
+              (n) => n.chainId !== 5042002 && n.chainId !== 84532,
+            ),
+            baseSepoliaNetwork,
+            arcTestnetNetwork,
+          ],
         },
       }}
     >
