@@ -9,10 +9,12 @@ import { defineChain } from "viem";
 
 export const ARC_CHAIN_ID = 5042002;
 
-// Arc's native USDC uses 6 decimals (confirmed by the wallet's own tx
-// preview: network fee renders correctly at 6, and an 18-decimal value
-// displayed as 1,000,000,000,000). Use ARC_DECIMALS everywhere for value math.
-export const ARC_DECIMALS = 6;
+// Arc's native USDC uses 18 decimals ON-CHAIN — PROVEN by a real transfer:
+// sending parseUnits("0.5", 18) credited the recipient exactly
+// 500000000000000000 wei (= 0.5 at 18 decimals). The wallet UI previously
+// showed scary numbers only because its nativeCurrency.decimals was set to 6;
+// keep BOTH this and the Dynamic network config at 18 so value + display agree.
+export const ARC_DECIMALS = 18;
 
 // viem has no built-in Arc chain, so define it.
 export const arcTestnet = defineChain({
